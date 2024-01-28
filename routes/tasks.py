@@ -30,18 +30,12 @@ async def addTask(task: Task, payload: dict = Depends(getCurrentUserData)):
 
 # Get the tasks from the database
 @router.get("/")
-async def getTasks(status: str = None, payload: dict = Depends(getCurrentUserData)):
+async def getTasks(payload: dict = Depends(getCurrentUserData)):
     try:
-        statusFilter : dict = {}
-
-        # Check if a query is passed
-        if status != None:
-            statusFilter['status'] = status
         if payload['role'] == 'admin':
-            tasks = db.tasks.find(statusFilter)
+            tasks = db.tasks.find({})
         else:
-            statusFilter['userID'] = payload['userID']
-            tasks = db.tasks.find(statusFilter)
+            tasks = db.tasks.find({'userID': payload['userID']})
         taskList = [task for task in tasks]
         for task in taskList:
             task['_id'] = str(task['_id'])

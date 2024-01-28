@@ -5,6 +5,7 @@ from utils import hashPassword, getCurrentUserData
 from models.userModel import User, createAccessToken
 from database import db
 from datetime import datetime
+from fastapi.routing import RequestRedirect
 
 router = APIRouter(prefix = '/users', tags = ['users'])
 
@@ -56,10 +57,14 @@ async def login(user: User, response: Response):
     except Exception as e: 
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/")
+@router.get("/tokenData")
 async def getTokenData(payload: dict = Depends(getCurrentUserData)):
     try:
         return {"userData": payload}
     except Exception as e: 
-        raise HTTPException(status_code=400, detail=str(e))   
+        raise HTTPException(status_code=400, detail=str(e))
 
+@router.get("/logout")  
+async def logout(response: Response):
+    response.delete_cookie("accessToken")
+    return RedirectResponse(url="/")

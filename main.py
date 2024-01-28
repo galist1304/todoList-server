@@ -1,8 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from routes import tasks, users
-
 from pymongo import MongoClient
 from database import db
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
 
@@ -10,6 +11,15 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
+# Configure CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Update this with the actual origins you want to allow
+    allow_methods=["GET", "POST", "PATCH","PUT", "DELETE"],
+    allow_headers=["*"],
+    allow_credentials=True,
+    expose_headers=["Content-Disposition"],
+)
 
 @app.get("/")
 async def root():
