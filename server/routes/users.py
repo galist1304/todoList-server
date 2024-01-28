@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Response, HTTPException
+from fastapi import APIRouter, Response, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from utils import hashPassword
+from utils import hashPassword, getCurrentUserData
 from models.userModel import User, createAccessToken
 from database import db
 from datetime import datetime
@@ -29,7 +29,7 @@ async def addUser(user: User, response: Response):
         accessToken = createAccessToken(data={"userID": str(userData['_id']), "role": user.role})
 
         # set the access token in a cookie
-        response.set_cookie(key="accessToken", value=accessToken, max_age=3600)
+        response.set_cookie(key="accessToken", value=accessToken, max_age=3600, httponly=True)
         return {"accessToken": accessToken}
 
     except Exception as e: 
@@ -48,7 +48,7 @@ async def login(user: User, response: Response):
             accessToken = createAccessToken(data={"userID": str(userData['_id']), "role": str(userData['role'])})
 
             # set the access token in a cookie
-            response.set_cookie(key="accessToken", value=accessToken, max_age=3600)
+            response.set_cookie(key="accessToken", value=accessToken, max_age=3600, httponly=True)
             return {"accessToken": accessToken}
         else:
             raise HTTPException(status_code=400, detail="User not found")
@@ -56,5 +56,10 @@ async def login(user: User, response: Response):
     except Exception as e: 
         raise HTTPException(status_code=400, detail=str(e))
 
-
+@router.get("/")
+async def getTokenData(payload: dict = Depends(getCurrentUserData)):
+    try:
+        return {"userData": payload}
+    except Exception as e: 
+        raise HTTPException(status_code=400, detail=str(e))   
 
