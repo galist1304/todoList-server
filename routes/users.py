@@ -64,7 +64,7 @@ async def getTokenData(payload: dict = Depends(getCurrentUserData)):
     except Exception as e: 
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/logout")  
+@router.post("/logout")  
 async def logout(response: Response):
     response.delete_cookie("accessToken")
     return RedirectResponse(url="/")
