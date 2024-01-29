@@ -5,9 +5,10 @@ from utils import hashPassword, getCurrentUserData
 from models.userModel import User, createAccessToken
 from database import db
 from datetime import datetime
-from fastapi.routing import RequestRedirect
 
 router = APIRouter(prefix = '/users', tags = ['users'])
+
+
 
 # Add a user to the database
 @router.post("/signup")
@@ -30,10 +31,11 @@ async def addUser(user: User, response: Response):
         accessToken = createAccessToken(data={"userID": str(userData['_id']), "role": user.role})
 
         # set the access token in a cookie
-        response.set_cookie(key="accessToken", value=accessToken, max_age=3600, httponly=True)
-        return {"accessToken": accessToken}
+        response.set_cookie(key="accessToken", value=accessToken, max_age=3600, httponly=True, secure=True, samesite='none')
+        return {"message": "Access token updated successfully"}
 
     except Exception as e: 
+        print(e)
         raise HTTPException(status_code=400, detail=str(e))
 
 # Login route
@@ -49,8 +51,8 @@ async def login(user: User, response: Response):
             accessToken = createAccessToken(data={"userID": str(userData['_id']), "role": str(userData['role'])})
 
             # set the access token in a cookie
-            response.set_cookie(key="accessToken", value=accessToken, max_age=3600, httponly=True)
-            return {"accessToken": accessToken}
+            response.set_cookie(key="accessToken", value=accessToken, max_age=3600, httponly=True, secure=True, samesite='none')
+            return {"message": "Access token updated successfully"}
         else:
             raise HTTPException(status_code=400, detail="User not found")
 
@@ -67,4 +69,4 @@ async def getTokenData(payload: dict = Depends(getCurrentUserData)):
 @router.post("/logout")  
 async def logout(response: Response):
     response.delete_cookie("accessToken")
-    return RedirectResponse(url="/")
+    return {"message": "Cookie deleted successfully"}

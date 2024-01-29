@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from routes import tasks, users
 from pymongo import MongoClient
 from database import db
@@ -14,9 +14,9 @@ if __name__ == "__main__":
 # Configure CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Update this with the actual origins you want to allow
+    allow_origins=["http://localhost:5173"],  # Update this with the actual origins you want to allow
     allow_methods=["GET", "POST", "PATCH","PUT", "DELETE"],
-    allow_headers=["*"],
+    allow_headers=["Access-Control-Allow-Origin"],
     allow_credentials=True,
     expose_headers=["Content-Disposition"],
 )
@@ -33,6 +33,7 @@ async def check_db_health():
         return {"status": "Database is connected"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database connection error: {str(e)}")
+
 
 app.include_router(tasks.router)
 app.include_router(users.router)
