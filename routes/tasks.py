@@ -13,12 +13,15 @@ async def addTask(task: Task, payload: dict = Depends(getCurrentUserData)):
     try:
         task.created_at = datetime.now()
         if payload['role'] == 'admin':
-
-            # Check if the userId exists in the database
-            if db.users.find_one({'_id': ObjectId(task.taskForUser)}):
-                task.userID = task.taskForUser
-            else:
-                raise HTTPException(status_code=400, detail="Invalid userID")
+            # Check if the userID exists in the database
+            if task.taskForUser: 
+                if db.users.find_one({'username': task.taskForUser}):
+                    user = db.users.find_one({'username': task.taskForUser})
+                    task.userID = str(user['_id'])
+                else:
+                    raise HTTPException(status_code=400, detail="Invalid username")
+            else: 
+                task.userID = payload['userID']
         else:
             task.userID = payload['userID']
         taskDict = task.dict()
@@ -36,11 +39,19 @@ async def getTasks(payload: dict = Depends(getCurrentUserData)):
             tasks = db.tasks.find({})
         else:
             tasks = db.tasks.find({'userID': payload['userID']})
+        users_cursor = db.users.find({})
+        userList = [user for user in users_cursor]
+        users_dict = {str(user["_id"]): {"username": user["username"]} for user in userList}
         taskList = [task for task in tasks]
         for task in taskList:
             task['_id'] = str(task['_id'])
+            userID = task.get("userID")
+            if userID in users_dict:
+                task["username"] = users_dict[userID]["username"]
+            else:
+                task["username"] = ""
         return {"tasks": taskList}
-    except Exception as e: 
+    except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 # Delete a task from the database by ID
@@ -52,6 +63,13 @@ async def deleteTask(taskID: str, payload: dict = Depends(getCurrentUserData)):
             return {"message": "Task deleted successfully"}
         else:
             raise HTTPException(status_code=404, detail="Task not found")
+    except Exception as e: 
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.delete("/deleteCompleted")
+async def deleteCompleted(payload: dict = Depends(getCurrentUserData)):
+    try:
+        response = db.tasks.delete_many({'status': 'Completed'})
     except Exception as e: 
         raise HTTPException(status_code=400, detail=str(e))
 

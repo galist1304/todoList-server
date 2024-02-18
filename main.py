@@ -14,7 +14,7 @@ if __name__ == "__main__":
 # Configure CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Update this with the actual origins you want to allow
+    allow_origins=["http://localhost:5173"], 
     allow_methods=["GET", "POST", "PATCH","PUT", "DELETE"],
     allow_headers=["Access-Control-Allow-Origin"],
     allow_credentials=True,

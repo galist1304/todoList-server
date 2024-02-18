@@ -10,7 +10,7 @@ import jwt
 load_dotenv()
 
 class User(BaseModel):
-    username : str
+    username : constr(min_length=3, max_length=100)
     password : constr(min_length=3, max_length=16)
     role : Optional[str] = None
     created_at: datetime = None
