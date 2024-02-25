@@ -17,10 +17,21 @@ async def getCurrentUserData(request: Request):
     token = request.cookies.get("accessToken")
     if token is None:
         raise HTTPException(status_code=401, detail="Token not found in cookie")
-
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         print(payload)
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except jwt.exceptions.DecodeError as decode_error:
+        raise HTTPException(status_code=401, detail="Invalid token format: Not enough segments") from decode_error
+
+async def getRefreshTokenData(request: Request):
+    token = request.cookies.get("refreshToken")
+    if token is None:
+        raise HTTPException(status_code=401, detail="Token not found in cookie")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -45,3 +56,12 @@ def verifyPassword(hashedPassword, plainPassword):
     except Exception as e:
         print("Error:", str(e))
         return False  
+
+def decodeToken(refreshToken):
+    try:
+        payload = jwt.decode(refreshToken, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except jwt.exceptions.DecodeError as decode_error:
+        raise HTTPException(status_code=401, detail="Invalid token format: Not enough segments") from decode_error
